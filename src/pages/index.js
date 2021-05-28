@@ -1,14 +1,46 @@
 import * as React from "react"
-import { Link } from "gatsby"
+import { Link, graphql } from "gatsby"
 import { StaticImage } from "gatsby-plugin-image"
+import styled from 'styled-components'
 
 import Layout from "../components/layout"
 import Seo from "../components/seo"
 
-const IndexPage = () => (
+import useWindowDimensions from '../customHooks/useWindowWidth';
+
+const BlogLink = styled(Link)`
+  text-decoration: none;
+`
+
+const BlogTitle = styled.h3`
+  margin-bottom: 20px;
+  color: blue;
+`
+
+const IndexPage =  ({ data }) => {
+  console.log(data)
+  const { width } = useWindowDimensions();
+  return (
   <Layout>
     <Seo title="Home" />
-    <h1>Hi people</h1>
+    <h1>Ilya's blog</h1> 
+    <h4>{ data.allMarkdownRemark.totalCount+100 }</h4>
+    {
+      data.allMarkdownRemark.edges.map(({node})=>(
+        <div key={node.id}>
+          <BlogLink to={node.fields.slug}>
+            <BlogTitle>{node.frontmatter.title} - {node.frontmatter.date}</BlogTitle>
+          </BlogLink>
+          <p>{node.excerpt}</p>
+        </div>
+      ))
+    }
+    {'-'.repeat(width<1110?width/10:width/15)}
+    <br></br>
+    {width}
+
+
+
     <p>Welcome to your new Gatsby site.</p>
     <p>Now go build something great.</p>
     <StaticImage
@@ -25,6 +57,29 @@ const IndexPage = () => (
       <Link to="/using-typescript/">Go to "Using TypeScript"</Link>
     </p>
   </Layout>
-)
+)}
 
 export default IndexPage
+
+export const query = graphql`
+  query {
+    allMarkdownRemark(sort: { fields: [frontmatter___date], order: DESC}) {
+      totalCount
+      edges {
+        node {
+          id
+          frontmatter {
+            title
+            description
+            date
+          }
+          fields {
+            slug
+          }
+          html
+          excerpt
+        }
+      }
+    }
+  }
+`
